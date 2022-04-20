@@ -16,6 +16,8 @@ import java.util.Scanner;
  */
 class Parser {
 
+    private static final String COMMENT_START = "//";
+
     private Scanner scanner;
 
     String currentCommand;
@@ -45,6 +47,14 @@ class Parser {
      * Initially there is no current command.
      */
     void advance() {
-        currentCommand = scanner.nextLine();
+        String line = scanner.nextLine();
+        if (!(line.isEmpty() || line.startsWith(COMMENT_START))) {
+            if (line.contains(COMMENT_START)) {
+                line = line.substring(0, line.indexOf(COMMENT_START));
+            }
+            currentCommand = line.trim();
+        } else {
+            advance();
+        }
     }
 }
