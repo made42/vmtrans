@@ -1,5 +1,4 @@
 import java.io.File;
-import java.io.FileWriter;
 
 /**
  * This is the main program that drives the translation process, using the services of a <code>Parser<code> and a
@@ -20,7 +19,6 @@ class VMTranslator {
     private static final int FIRST_CHAR = 0;
     private static final String VM_EXT = ".vm";
     private static final String ASM_EXT = ".asm";
-    private static final String CRLF = "\r\n";
 
     public static void main(String[] args) throws Exception {
         if (args.length == MAX_ARGS) {
@@ -29,13 +27,13 @@ class VMTranslator {
                 String fileName = inputFile.getName();
                 if (fileName.endsWith(VM_EXT)) {
                     if (Character.isUpperCase(fileName.charAt(FIRST_CHAR))) {
-                        FileWriter fileWriter = new FileWriter(inputFile.getParent() + "/" + fileName.substring(FIRST_CHAR, fileName.indexOf('.')) + ASM_EXT);
+                        CodeWriter codeWriter = new CodeWriter(new File(inputFile.getParent() + "/" + fileName.substring(FIRST_CHAR, fileName.indexOf('.')) + ASM_EXT));
                         Parser parser = new Parser(inputFile);
                         while (parser.hasMoreLines()) {
                             parser.advance();
-                            fileWriter.write(parser.currentCommand + CRLF);
+                            codeWriter.write(parser.currentCommand);
                         }
-                        fileWriter.close();
+                        codeWriter.close();
                     } else {
                         System.out.println("First character in file name must be an uppercase letter");
                     }
