@@ -31,7 +31,13 @@ class VMTranslator {
                         Parser parser = new Parser(inputFile);
                         while (parser.hasMoreLines()) {
                             parser.advance();
-                            codeWriter.write(parser.currentCommand);
+                            switch (parser.commandType()) {
+                                case C_PUSH:
+                                    codeWriter.writePushPop(Parser.CommandType.C_PUSH, parser.arg1(), parser.arg2());
+                                    break;
+                                default:
+                                    codeWriter.write(parser.currentCommand);
+                            }
                         }
                         codeWriter.close();
                     } else {

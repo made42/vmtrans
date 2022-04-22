@@ -37,6 +37,36 @@ class CodeWriter {
     }
 
     /**
+     * Writes to the output file the assembly code that implements the given command,
+     * where command is either C_PUSH or C_POP.
+     *
+     * @param command
+     * @param segment
+     * @param index
+     * @throws Exception
+     */
+    void writePushPop(Parser.CommandType command, String segment, int index) {
+        switch (command) {
+            case C_PUSH:
+                switch (segment) {
+                    case "constant":
+                        printWriter.println("@" + index);
+                        printWriter.println("D=A");
+                        printWriter.println("@SP");
+                        printWriter.println("A=M");
+                        printWriter.println("M=D");
+                        printWriter.println("@SP");
+                        printWriter.println("M=M+1");
+                        break;
+                    default:
+                        write(Parser.currentCommand);
+                        break;
+                }
+                break;
+        }
+    }
+
+    /**
      * Closes the output file.
      */
     void close() {

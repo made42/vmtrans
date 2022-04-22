@@ -20,7 +20,12 @@ class Parser {
 
     private Scanner scanner;
 
-    String currentCommand;
+    static String currentCommand;
+
+    enum CommandType {
+        C_PUSH,
+        DEFAULT
+    }
 
     /**
      * Opens the input file / stream, and gets ready to parse it.
@@ -56,5 +61,37 @@ class Parser {
         } else {
             advance();
         }
+    }
+
+    /**
+     * Returns a constant representing the type of the current command.
+     * C_ARITHMETIC is returned for all the arithmetic/logical commands.
+     *
+     * @return  constant representing the type of the current command
+     */
+    CommandType commandType() {
+        if (currentCommand.startsWith("push")) return CommandType.C_PUSH;
+        return CommandType.DEFAULT;
+    }
+
+    /**
+     * Returns the first argument of the current command. In the case of C_ARITHMETIC,
+     * the command itself (add, sub, etc.) is returned.
+     * Should not be called if the current command is C_RETURN.
+     *
+     * @return  first argument of the current command
+     */
+    String arg1() {
+        return currentCommand.split("\\s+")[1];
+    }
+
+    /**
+     * Returns the second argument of the current command. Should be called only
+     * if the current command is C_PUSH, C_POP, C_FUNCTION, or C_CALL.
+     *
+     * @return second argument of the current command
+     */
+    int arg2() {
+        return Integer.parseInt(currentCommand.split("\\s+")[2]);
     }
 }
