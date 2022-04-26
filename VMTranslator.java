@@ -35,6 +35,9 @@ class VMTranslator {
                                 case C_PUSH:
                                     codeWriter.writePushPop(Parser.CommandType.C_PUSH, parser.arg1(), parser.arg2());
                                     break;
+                                case C_POP:
+                                    codeWriter.writePushPop(Parser.CommandType.C_POP, parser.arg1(), parser.arg2());
+                                    break;
                                 default:
                                     codeWriter.write(parser.currentCommand);
                             }

@@ -24,6 +24,7 @@ class Parser {
 
     enum CommandType {
         C_PUSH,
+        C_POP,
         DEFAULT
     }
 
@@ -71,6 +72,7 @@ class Parser {
      */
     CommandType commandType() {
         if (currentCommand.startsWith("push")) return CommandType.C_PUSH;
+        if (currentCommand.startsWith("pop")) return CommandType.C_POP;
         return CommandType.DEFAULT;
     }
 

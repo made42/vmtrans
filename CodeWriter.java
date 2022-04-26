@@ -63,6 +63,29 @@ class CodeWriter {
                         break;
                 }
                 break;
+            case C_POP:
+                switch (segment) {
+                    case "local":
+                        printWriter.println("@LCL");
+                        printWriter.println("D=M");
+                        printWriter.println("@" + index);
+                        printWriter.println("D=D+A");
+                        printWriter.println("@addr");
+                        printWriter.println("M=D");
+                        printWriter.println("@SP");
+                        printWriter.println("M=M-1");
+                        printWriter.println("@SP");
+                        printWriter.println("A=M");
+                        printWriter.println("D=M");
+                        printWriter.println("@addr");
+                        printWriter.println("A=M");
+                        printWriter.println("M=D");
+                        break;
+                    default:
+                        write(Parser.currentCommand);
+                        break;
+                }
+                break;
         }
     }
 
