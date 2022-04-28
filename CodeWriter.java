@@ -131,6 +131,19 @@ class CodeWriter {
                         printWriter.println("@SP");
                         printWriter.println("M=M+1");
                         break;
+                    case "pointer":
+                        if (index == 0) {
+                            printWriter.println("@THIS");
+                        } else if (index == 1) {
+                            printWriter.println("@THAT");
+                        }
+                        printWriter.println("D=M");
+                        printWriter.println("@SP");
+                        printWriter.println("A=M");
+                        printWriter.println("M=D");
+                        printWriter.println("@SP");
+                        printWriter.println("M=M+1");
+                        break;
                     default:
                         write(Parser.currentCommand);
                         break;
@@ -171,6 +184,17 @@ class CodeWriter {
                         printWriter.println("D=M");
                         printWriter.println("@addr");
                         printWriter.println("A=M");
+                        printWriter.println("M=D");
+                        break;
+                    case "pointer":
+                        printWriter.println("@SP");
+                        printWriter.println("AM=M-1");
+                        printWriter.println("D=M");
+                        if (index == 0) {
+                            printWriter.println("@THIS");
+                        } else if (index == 1) {
+                            printWriter.println("@THAT");
+                        }
                         printWriter.println("M=D");
                         break;
                     default:
