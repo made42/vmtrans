@@ -94,7 +94,10 @@ class CodeWriter {
             case C_POP:
                 switch (segment) {
                     case "local":
-                        printWriter.println("@LCL");
+                    case "argument":
+                    case "this":
+                    case "that":
+                        printWriter.println("@" + segmentMap.get(segment));
                         printWriter.println("D=M");
                         printWriter.println("@" + index);
                         printWriter.println("D=D+A");
