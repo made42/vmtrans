@@ -115,6 +115,22 @@ class CodeWriter {
                         printWriter.println("@SP");
                         printWriter.println("M=M+1");
                         break;
+                    case "temp":
+                        printWriter.println("@5");
+                        printWriter.println("D=A");
+                        printWriter.println("@" + index);
+                        printWriter.println("D=D+A");
+                        printWriter.println("@addr");
+                        printWriter.println("M=D");
+                        printWriter.println("@addr");
+                        printWriter.println("A=M");
+                        printWriter.println("D=M");
+                        printWriter.println("@SP");
+                        printWriter.println("A=M");
+                        printWriter.println("M=D");
+                        printWriter.println("@SP");
+                        printWriter.println("M=M+1");
+                        break;
                     default:
                         write(Parser.currentCommand);
                         break;
@@ -128,6 +144,22 @@ class CodeWriter {
                     case "that":
                         printWriter.println("@" + segmentMap.get(segment));
                         printWriter.println("D=M");
+                        printWriter.println("@" + index);
+                        printWriter.println("D=D+A");
+                        printWriter.println("@addr");
+                        printWriter.println("M=D");
+                        printWriter.println("@SP");
+                        printWriter.println("M=M-1");
+                        printWriter.println("@SP");
+                        printWriter.println("A=M");
+                        printWriter.println("D=M");
+                        printWriter.println("@addr");
+                        printWriter.println("A=M");
+                        printWriter.println("M=D");
+                        break;
+                    case "temp":
+                        printWriter.println("@5");
+                        printWriter.println("D=A");
                         printWriter.println("@" + index);
                         printWriter.println("D=D+A");
                         printWriter.println("@addr");
