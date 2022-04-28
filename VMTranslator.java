@@ -38,6 +38,9 @@ class VMTranslator {
                                 case C_POP:
                                     codeWriter.writePushPop(Parser.CommandType.C_POP, parser.arg1(), parser.arg2());
                                     break;
+                                case C_ARITHMETIC:
+                                    codeWriter.writeArithmetic(parser.arg1());
+                                    break;
                                 default:
                                     codeWriter.write(parser.currentCommand);
                             }

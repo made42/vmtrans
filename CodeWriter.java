@@ -46,6 +46,27 @@ class CodeWriter {
     }
 
     /**
+     * Writes to the output file the assembly code that implements the given arithmetic command.
+     *
+     * @param command   The command to be written
+     */
+    void writeArithmetic(String command) {
+        switch(command) {
+            case "add": // x + y
+                printWriter.println("@SP");
+                printWriter.println("AM=M-1");
+                printWriter.println("D=M");
+                printWriter.println("@SP");
+                printWriter.println("A=M-1");
+                printWriter.println("M=M+D");
+                break;
+            default:
+                write(Parser.currentCommand);
+                break;
+        }
+    }
+
+    /**
      * Writes to the output file the assembly code that implements the given command,
      * where command is either C_PUSH or C_POP.
      *

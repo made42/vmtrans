@@ -25,7 +25,7 @@ class Parser {
     enum CommandType {
         C_PUSH,
         C_POP,
-        DEFAULT
+        C_ARITHMETIC
     }
 
     /**
@@ -73,7 +73,7 @@ class Parser {
     CommandType commandType() {
         if (currentCommand.startsWith("push")) return CommandType.C_PUSH;
         if (currentCommand.startsWith("pop")) return CommandType.C_POP;
-        return CommandType.DEFAULT;
+        return CommandType.C_ARITHMETIC;
     }
 
     /**
@@ -84,6 +84,7 @@ class Parser {
      * @return  first argument of the current command
      */
     String arg1() {
+        if (commandType() == CommandType.C_ARITHMETIC) return currentCommand;
         return currentCommand.split("\\s+")[1];
     }
 
