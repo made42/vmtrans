@@ -1,6 +1,8 @@
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This module translates a parsed VM command into Hack assembly code.
@@ -16,6 +18,8 @@ class CodeWriter {
 
     private PrintWriter printWriter;
 
+    private Map<String, String> segmentMap;
+
     /**
      * Opens the output file / stream and gets ready to write into it.
      *
@@ -23,6 +27,11 @@ class CodeWriter {
      */
     CodeWriter(File file) throws Exception {
         printWriter = new PrintWriter(new FileWriter(file));
+        segmentMap = new HashMap<>();
+        segmentMap.put("local", "LCL");
+        segmentMap.put("argument", "ARG");
+        segmentMap.put("this", "THIS");
+        segmentMap.put("that", "THAT");
     }
 
     /**
@@ -52,6 +61,25 @@ class CodeWriter {
                     case "constant":
                         printWriter.println("@" + index);
                         printWriter.println("D=A");
+                        printWriter.println("@SP");
+                        printWriter.println("A=M");
+                        printWriter.println("M=D");
+                        printWriter.println("@SP");
+                        printWriter.println("M=M+1");
+                        break;
+                    case "local":
+                    case "argument":
+                    case "this":
+                    case "that":
+                        printWriter.println("@" + segmentMap.get(segment));
+                        printWriter.println("D=M");
+                        printWriter.println("@" + index);
+                        printWriter.println("D=D+A");
+                        printWriter.println("@addr");
+                        printWriter.println("M=D");
+                        printWriter.println("@addr");
+                        printWriter.println("A=M");
+                        printWriter.println("D=M");
                         printWriter.println("@SP");
                         printWriter.println("A=M");
                         printWriter.println("M=D");
