@@ -21,6 +21,7 @@ class CodeWriter {
     private Map<String, String> segmentMap;
 
     private int eqcounter = 0;
+    private int gtcounter = 0;
 
     /**
      * Opens the output file / stream and gets ready to write into it.
@@ -92,6 +93,24 @@ class CodeWriter {
                 printWriter.println("M=-1");
                 printWriter.println("(cont" + eqcounter + ")");
                 eqcounter++;
+                break;
+            case "gt":  // x > y
+                printWriter.println("@SP");
+                printWriter.println("AM=M-1");
+                printWriter.println("D=M");
+                printWriter.println("A=A-1");
+                printWriter.println("D=M-D");
+                printWriter.println("M=0");
+                printWriter.println("@gt" + gtcounter);
+                printWriter.println("D;JGT");
+                printWriter.println("@gtcont" + gtcounter);
+                printWriter.println("0;JMP");
+                printWriter.println("(gt" + gtcounter+ ")");
+                printWriter.println("@SP");
+                printWriter.println("A=M-1");
+                printWriter.println("M=-1");
+                printWriter.println("(gtcont" + gtcounter + ")");
+                gtcounter++;
                 break;
             default:
                 write(Parser.currentCommand);
