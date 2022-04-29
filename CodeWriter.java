@@ -20,6 +20,8 @@ class CodeWriter {
 
     private Map<String, String> segmentMap;
 
+    private int eqcounter = 0;
+
     /**
      * Opens the output file / stream and gets ready to write into it.
      *
@@ -72,6 +74,24 @@ class CodeWriter {
                 printWriter.println("@SP");
                 printWriter.println("A=M-1");
                 printWriter.println("M=-M");
+                break;
+            case "eq":  // x == y
+                printWriter.println("@SP");
+                printWriter.println("AM=M-1");
+                printWriter.println("D=M");
+                printWriter.println("A=A-1");
+                printWriter.println("D=M-D");
+                printWriter.println("M=0");
+                printWriter.println("@eq" + eqcounter);
+                printWriter.println("D;JEQ");
+                printWriter.println("@cont" + eqcounter);
+                printWriter.println("0;JMP");
+                printWriter.println("(eq" + eqcounter+ ")");
+                printWriter.println("@SP");
+                printWriter.println("A=M-1");
+                printWriter.println("M=-1");
+                printWriter.println("(cont" + eqcounter + ")");
+                eqcounter++;
                 break;
             default:
                 write(Parser.currentCommand);
