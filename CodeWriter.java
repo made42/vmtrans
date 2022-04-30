@@ -22,6 +22,7 @@ class CodeWriter {
 
     private int eqcounter = 0;
     private int gtcounter = 0;
+    private int ltcounter = 0;
 
     /**
      * Opens the output file / stream and gets ready to write into it.
@@ -111,6 +112,24 @@ class CodeWriter {
                 printWriter.println("M=-1");
                 printWriter.println("(gtcont" + gtcounter + ")");
                 gtcounter++;
+                break;
+            case "lt":  // x < y
+                printWriter.println("@SP");
+                printWriter.println("AM=M-1");
+                printWriter.println("D=M");
+                printWriter.println("A=A-1");
+                printWriter.println("D=M-D");
+                printWriter.println("M=0");
+                printWriter.println("@lt" + ltcounter);
+                printWriter.println("D;JLT");
+                printWriter.println("@ltcont" + ltcounter);
+                printWriter.println("0;JMP");
+                printWriter.println("(lt" + ltcounter+ ")");
+                printWriter.println("@SP");
+                printWriter.println("A=M-1");
+                printWriter.println("M=-1");
+                printWriter.println("(ltcont" + ltcounter + ")");
+                ltcounter++;
                 break;
             default:
                 write(Parser.currentCommand);
