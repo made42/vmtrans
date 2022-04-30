@@ -147,6 +147,11 @@ class CodeWriter {
                 printWriter.println("A=M-1");
                 printWriter.println("M=M|D");
                 break;
+            case "not": // not x
+                printWriter.println("@SP");
+                printWriter.println("A=M-1");
+                printWriter.println("M=!M");
+                break;
             default:
                 write(Parser.currentCommand);
                 break;
