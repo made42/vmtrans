@@ -41,10 +41,9 @@ class VMTranslator {
                                 case C_ARITHMETIC:
                                     codeWriter.writeArithmetic(parser.arg1());
                                     break;
-                                default:
-                                    codeWriter.write(parser.currentCommand);
                             }
                         }
+                        codeWriter.writeEnd();
                         codeWriter.close();
                     } else {
                         System.out.println("First character in file name must be an uppercase letter");

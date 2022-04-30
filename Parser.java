@@ -20,7 +20,7 @@ class Parser {
 
     private Scanner scanner;
 
-    static String currentCommand;
+    private String currentCommand;
 
     enum CommandType {
         C_PUSH,

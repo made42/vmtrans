@@ -39,17 +39,6 @@ class CodeWriter {
     }
 
     /**
-     * Writes to the output file the given command
-     * Temporary method
-     *
-     * @param command   The command to be written
-     * @throws Exception
-     */
-    void write(String command) {
-        printWriter.println(command);
-    }
-
-    /**
      * Writes to the output file the assembly code that implements the given arithmetic command.
      *
      * @param command   The command to be written
@@ -152,9 +141,6 @@ class CodeWriter {
                 printWriter.println("A=M-1");
                 printWriter.println("M=!M");
                 break;
-            default:
-                write(Parser.currentCommand);
-                break;
         }
     }
 
@@ -237,9 +223,6 @@ class CodeWriter {
                         printWriter.println("@SP");
                         printWriter.println("M=M+1");
                         break;
-                    default:
-                        write(Parser.currentCommand);
-                        break;
                 }
                 break;
             case C_POP:
@@ -297,12 +280,19 @@ class CodeWriter {
                         printWriter.println("@Foo." + index);
                         printWriter.println("M=D");
                         break;
-                    default:
-                        write(Parser.currentCommand);
-                        break;
                 }
                 break;
         }
+    }
+
+    /**
+     * Writes to the output file the assembly code that implements an infinite loop.
+     * To be called once, after translating all the VM commands.
+     */
+    void writeEnd() {
+        printWriter.println("(END)");
+        printWriter.println("@END");
+        printWriter.println("0;JMP");
     }
 
     /**
