@@ -139,6 +139,14 @@ class CodeWriter {
                 printWriter.println("A=M-1");
                 printWriter.println("M=M&D");
                 break;
+            case "or":  // x or y
+                printWriter.println("@SP");
+                printWriter.println("AM=M-1");
+                printWriter.println("D=M");
+                printWriter.println("@SP");
+                printWriter.println("A=M-1");
+                printWriter.println("M=M|D");
+                break;
             default:
                 write(Parser.currentCommand);
                 break;
