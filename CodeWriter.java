@@ -18,11 +18,9 @@ class CodeWriter {
 
     private PrintWriter printWriter;
 
-    private Map<String, String> segmentMap;
+    private Map<String, String> mappings;
 
-    private int eqcounter = 0;
-    private int gtcounter = 0;
-    private int ltcounter = 0;
+    private int counter = 0;
 
     /**
      * Opens the output file / stream and gets ready to write into it.
@@ -31,11 +29,20 @@ class CodeWriter {
      */
     CodeWriter(File file) throws Exception {
         printWriter = new PrintWriter(new FileWriter(file));
-        segmentMap = new HashMap<>();
-        segmentMap.put("local", "LCL");
-        segmentMap.put("argument", "ARG");
-        segmentMap.put("this", "THIS");
-        segmentMap.put("that", "THAT");
+        mappings = new HashMap<>();
+        mappings.put("local", "LCL");
+        mappings.put("argument", "ARG");
+        mappings.put("this", "THIS");
+        mappings.put("that", "THAT");
+        mappings.put("add", "+");
+        mappings.put("sub", "-");
+        mappings.put("and", "&");
+        mappings.put("or", "|");
+        mappings.put("neg", "-");
+        mappings.put("not", "!");
+        mappings.put("eq", "JEQ");
+        mappings.put("gt", "JGT");
+        mappings.put("lt", "JLT");
     }
 
     /**
@@ -44,102 +51,40 @@ class CodeWriter {
      * @param command   The command to be written
      */
     void writeArithmetic(String command) {
+        printWriter.println("@SP");
         switch(command) {
-            case "add": // x + y
-                printWriter.println("@SP");
-                printWriter.println("AM=M-1");
-                printWriter.println("D=M");
-                printWriter.println("@SP");
-                printWriter.println("A=M-1");
-                printWriter.println("M=M+D");
-                break;
-            case "sub": // x - y
-                printWriter.println("@SP");
-                printWriter.println("AM=M-1");
-                printWriter.println("D=M");
-                printWriter.println("@SP");
-                printWriter.println("A=M-1");
-                printWriter.println("M=M-D");
-                break;
             case "neg": // -y
-                printWriter.println("@SP");
+            case "not": // not x
                 printWriter.println("A=M-1");
-                printWriter.println("M=-M");
+                printWriter.println("M=" + mappings.get(command) + "M");
+                break;
+            case "add": // x + y
+            case "sub": // x - y
+            case "and": // x and y
+            case "or":  // x or y
+                printWriter.println("AM=M-1");
+                printWriter.println("D=M");
+                printWriter.println("A=A-1");
+                printWriter.println("M=M" + mappings.get(command) + "D");
                 break;
             case "eq":  // x == y
-                printWriter.println("@SP");
-                printWriter.println("AM=M-1");
-                printWriter.println("D=M");
-                printWriter.println("A=A-1");
-                printWriter.println("D=M-D");
-                printWriter.println("M=0");
-                printWriter.println("@eq" + eqcounter);
-                printWriter.println("D;JEQ");
-                printWriter.println("@cont" + eqcounter);
-                printWriter.println("0;JMP");
-                printWriter.println("(eq" + eqcounter+ ")");
-                printWriter.println("@SP");
-                printWriter.println("A=M-1");
-                printWriter.println("M=-1");
-                printWriter.println("(cont" + eqcounter + ")");
-                eqcounter++;
-                break;
             case "gt":  // x > y
-                printWriter.println("@SP");
-                printWriter.println("AM=M-1");
-                printWriter.println("D=M");
-                printWriter.println("A=A-1");
-                printWriter.println("D=M-D");
-                printWriter.println("M=0");
-                printWriter.println("@gt" + gtcounter);
-                printWriter.println("D;JGT");
-                printWriter.println("@gtcont" + gtcounter);
-                printWriter.println("0;JMP");
-                printWriter.println("(gt" + gtcounter+ ")");
-                printWriter.println("@SP");
-                printWriter.println("A=M-1");
-                printWriter.println("M=-1");
-                printWriter.println("(gtcont" + gtcounter + ")");
-                gtcounter++;
-                break;
             case "lt":  // x < y
-                printWriter.println("@SP");
                 printWriter.println("AM=M-1");
                 printWriter.println("D=M");
                 printWriter.println("A=A-1");
                 printWriter.println("D=M-D");
                 printWriter.println("M=0");
-                printWriter.println("@lt" + ltcounter);
-                printWriter.println("D;JLT");
-                printWriter.println("@ltcont" + ltcounter);
+                printWriter.println("@" + command + counter);
+                printWriter.println("D;" + mappings.get(command));
+                printWriter.println("@" + command + "cont" + counter);
                 printWriter.println("0;JMP");
-                printWriter.println("(lt" + ltcounter+ ")");
+                printWriter.println("(" + command + counter+ ")");
                 printWriter.println("@SP");
                 printWriter.println("A=M-1");
                 printWriter.println("M=-1");
-                printWriter.println("(ltcont" + ltcounter + ")");
-                ltcounter++;
-                break;
-            case "and": // x and y
-                printWriter.println("@SP");
-                printWriter.println("AM=M-1");
-                printWriter.println("D=M");
-                printWriter.println("@SP");
-                printWriter.println("A=M-1");
-                printWriter.println("M=M&D");
-                break;
-            case "or":  // x or y
-                printWriter.println("@SP");
-                printWriter.println("AM=M-1");
-                printWriter.println("D=M");
-                printWriter.println("@SP");
-                printWriter.println("A=M-1");
-                printWriter.println("M=M|D");
-                break;
-            case "not": // not x
-                printWriter.println("@SP");
-                printWriter.println("A=M-1");
-                printWriter.println("M=!M");
+                printWriter.println("(" + command + "cont" + counter + ")");
+                counter++;
                 break;
         }
     }
@@ -170,7 +115,7 @@ class CodeWriter {
                     case "argument":
                     case "this":
                     case "that":
-                        printWriter.println("@" + segmentMap.get(segment));
+                        printWriter.println("@" + mappings.get(segment));
                         printWriter.println("D=M");
                         printWriter.println("@" + index);
                         printWriter.println("D=D+A");
@@ -231,7 +176,7 @@ class CodeWriter {
                     case "argument":
                     case "this":
                     case "that":
-                        printWriter.println("@" + segmentMap.get(segment));
+                        printWriter.println("@" + mappings.get(segment));
                         printWriter.println("D=M");
                         printWriter.println("@" + index);
                         printWriter.println("D=D+A");
