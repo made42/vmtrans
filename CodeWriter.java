@@ -105,34 +105,19 @@ class CodeWriter {
                     case "constant":
                         printWriter.println("@" + index);
                         printWriter.println("D=A");
-                        printWriter.println("@SP");
-                        printWriter.println("A=M");
-                        printWriter.println("M=D");
-                        printWriter.println("@SP");
-                        printWriter.println("M=M+1");
                         break;
                     case "local":
                     case "argument":
                     case "this":
                     case "that":
-                        printWriter.println("@" + mappings.get(segment));
-                        printWriter.println("D=M");
-                        printWriter.println("@" + index);
-                        printWriter.println("D=D+A");
-                        printWriter.println("@addr");
-                        printWriter.println("M=D");
-                        printWriter.println("@addr");
-                        printWriter.println("A=M");
-                        printWriter.println("D=M");
-                        printWriter.println("@SP");
-                        printWriter.println("A=M");
-                        printWriter.println("M=D");
-                        printWriter.println("@SP");
-                        printWriter.println("M=M+1");
-                        break;
                     case "temp":
-                        printWriter.println("@5");
-                        printWriter.println("D=A");
+                        if (segment.equals("temp")) {
+                            printWriter.println("@5");
+                            printWriter.println("D=A");
+                        } else {
+                            printWriter.println("@" + mappings.get(segment));
+                            printWriter.println("D=M");
+                        }
                         printWriter.println("@" + index);
                         printWriter.println("D=D+A");
                         printWriter.println("@addr");
@@ -140,35 +125,22 @@ class CodeWriter {
                         printWriter.println("@addr");
                         printWriter.println("A=M");
                         printWriter.println("D=M");
-                        printWriter.println("@SP");
-                        printWriter.println("A=M");
-                        printWriter.println("M=D");
-                        printWriter.println("@SP");
-                        printWriter.println("M=M+1");
                         break;
                     case "pointer":
-                        if (index == 0) {
-                            printWriter.println("@THIS");
-                        } else if (index == 1) {
-                            printWriter.println("@THAT");
-                        }
+                        if (index == 0) printWriter.println("@THIS");
+                        else if (index == 1) printWriter.println("@THAT");
                         printWriter.println("D=M");
-                        printWriter.println("@SP");
-                        printWriter.println("A=M");
-                        printWriter.println("M=D");
-                        printWriter.println("@SP");
-                        printWriter.println("M=M+1");
                         break;
                     case "static":
                         printWriter.println("@Foo." + index);
                         printWriter.println("D=M");
-                        printWriter.println("@SP");
-                        printWriter.println("A=M");
-                        printWriter.println("M=D");
-                        printWriter.println("@SP");
-                        printWriter.println("M=M+1");
                         break;
                 }
+                printWriter.println("@SP");
+                printWriter.println("A=M");
+                printWriter.println("M=D");
+                printWriter.println("@SP");
+                printWriter.println("M=M+1");
                 break;
             case C_POP:
                 switch (segment) {
