@@ -186,6 +186,38 @@ class CodeWriter {
     }
 
     /**
+     * Writes assembly code that effects the <code>label</code> command.
+     *
+     * @param label
+     */
+    void writeLabel(String label) {
+        printWriter.println("(" + label + ")");
+    }
+
+    /**
+     * Writes assembly code that effects the <code>goto</code> command.
+     *
+     * @param label
+     */
+    void writeGoto(String label) {
+        printWriter.println("@" + label);
+        printWriter.println("0;JMP");
+    }
+
+    /**
+     * Writes assembly code that effects the <code>if-goto</code> command.
+     *
+     * @param label
+     */
+    void writeIf(String label) {
+        printWriter.println("@SP");
+        printWriter.println("AM=M-1");
+        printWriter.println("D=M");
+        printWriter.println("@" + label);
+        printWriter.println("D;JNE");
+    }
+
+    /**
      * Writes to the output file the assembly code that implements an infinite loop.
      * To be called once, after translating all the VM commands.
      */

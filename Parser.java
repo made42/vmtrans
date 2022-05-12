@@ -25,7 +25,10 @@ class Parser {
     enum CommandType {
         C_PUSH,
         C_POP,
-        C_ARITHMETIC
+        C_ARITHMETIC,
+        C_LABEL,
+        C_GOTO,
+        C_IF
     }
 
     /**
@@ -73,6 +76,9 @@ class Parser {
     CommandType commandType() {
         if (currentCommand.startsWith("push")) return CommandType.C_PUSH;
         if (currentCommand.startsWith("pop")) return CommandType.C_POP;
+        if (currentCommand.startsWith("label")) return CommandType.C_LABEL;
+        if (currentCommand.startsWith("goto")) return CommandType.C_GOTO;
+        if (currentCommand.startsWith("if-goto")) return CommandType.C_IF;
         return CommandType.C_ARITHMETIC;
     }
 

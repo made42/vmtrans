@@ -41,6 +41,15 @@ class VMTranslator {
                                 case C_ARITHMETIC:
                                     codeWriter.writeArithmetic(parser.arg1());
                                     break;
+                                case C_LABEL:
+                                    codeWriter.writeLabel(parser.arg1());
+                                    break;
+                                case C_GOTO:
+                                    codeWriter.writeGoto(parser.arg1());
+                                    break;
+                                case C_IF:
+                                    codeWriter.writeIf(parser.arg1());
+                                    break;
                             }
                         }
                         codeWriter.writeEnd();
