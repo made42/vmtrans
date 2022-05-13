@@ -218,6 +218,76 @@ class CodeWriter {
     }
 
     /**
+     * Writes assembly code that effects the <code>function</code> command.
+     *
+     * @param label
+     * @param nVars
+     */
+    void writeFunction(String label, int nVars) {
+        printWriter.println("(" + label + ")");
+        for (int i = 0; i < nVars; i++) {
+            printWriter.println("@" + mappings.get("local"));
+            printWriter.println("D=M");
+            printWriter.println("@" + i);
+            printWriter.println("A=D+A");
+            printWriter.println("M=0");
+            printWriter.println("@SP");
+            printWriter.println("M=M+1");
+        }
+    }
+
+    /**
+     * Writes assembly code that effects the <code>return</code> command.
+     */
+    void writeReturn() {
+        // frame is a temporary variable
+        printWriter.println("@LCL");
+        printWriter.println("D=M");
+        printWriter.println("@frame");
+        printWriter.println("M=D");
+
+        // retAddr = *(frame-5)
+        printWriter.println("@frame");
+        printWriter.println("D=M");
+        printWriter.println("@5");
+        printWriter.println("A=D-A");
+        printWriter.println("D=M");
+        printWriter.println("@retAddr");
+        printWriter.println("M=D");
+
+        // *ARG = pop()
+        printWriter.println("@SP");
+        printWriter.println("AM=M-1");
+        printWriter.println("D=M");
+        printWriter.println("@ARG");
+        printWriter.println("A=M");
+        printWriter.println("M=D");
+
+        // SP = ARG + 1
+        printWriter.println("@ARG");
+        printWriter.println("D=M+1");
+        printWriter.println("@SP");
+        printWriter.println("M=D");
+
+        // THAT = *(frame-1)
+        // THIS = *(frame-2)
+        // ARG = *(frame-3)
+        // LCL = *(frame-4)
+        for (String segment : new String[]{"THAT","THIS","ARG","LCL"} ) {
+            printWriter.println("@frame");
+            printWriter.println("AM=M-1");
+            printWriter.println("D=M");
+            printWriter.println("@" + segment);
+            printWriter.println("M=D");
+        }
+
+        // goto retAddr
+        printWriter.println("@retAddr");
+        printWriter.println("A=M");
+        printWriter.println("0;JMP");
+    }
+
+    /**
      * Writes to the output file the assembly code that implements an infinite loop.
      * To be called once, after translating all the VM commands.
      */

@@ -28,7 +28,9 @@ class Parser {
         C_ARITHMETIC,
         C_LABEL,
         C_GOTO,
-        C_IF
+        C_IF,
+        C_FUNCTION,
+        C_RETURN
     }
 
     /**
@@ -79,6 +81,8 @@ class Parser {
         if (currentCommand.startsWith("label")) return CommandType.C_LABEL;
         if (currentCommand.startsWith("goto")) return CommandType.C_GOTO;
         if (currentCommand.startsWith("if-goto")) return CommandType.C_IF;
+        if (currentCommand.startsWith("function")) return CommandType.C_FUNCTION;
+        if (currentCommand.startsWith("return")) return CommandType.C_RETURN;
         return CommandType.C_ARITHMETIC;
     }
 
