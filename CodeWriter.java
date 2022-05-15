@@ -21,6 +21,9 @@ class CodeWriter {
     private Map<String, String> mappings;
 
     private int counter = 0;
+    private int retCounter = 0;
+
+    private String functionLabel;
 
     /**
      * Opens the output file / stream and gets ready to write into it.
@@ -224,6 +227,7 @@ class CodeWriter {
      * @param nVars
      */
     void writeFunction(String label, int nVars) {
+        this.functionLabel = label;
         printWriter.println("(" + label + ")");
         for (int i = 0; i < nVars; i++) {
             printWriter.println("@" + mappings.get("local"));
@@ -234,6 +238,57 @@ class CodeWriter {
             printWriter.println("@SP");
             printWriter.println("M=M+1");
         }
+    }
+
+    /**
+     * Writes assembly code that effects the <code>call</code> command.
+     *
+     * @param functionName
+     * @param nArgs
+     */
+    void writeCall(String functionName, int nArgs) {
+        // push returnAddress
+        printWriter.println("@" + functionLabel + "$ret." + retCounter);
+        printWriter.println("D=A");
+        printWriter.println("@SP");
+        printWriter.println("A=M");
+        printWriter.println("M=D");
+        printWriter.println("@SP");
+        printWriter.println("M=M+1");
+
+        // push LCL, ARG, THIS, THAT
+        for (String segment : new String[]{"LCL","ARG","THIS","THAT"} ) {
+            printWriter.println("@" + segment);
+            printWriter.println("D=M");
+            printWriter.println("@SP");
+            printWriter.println("A=M");
+            printWriter.println("M=D");
+            printWriter.println("@SP");
+            printWriter.println("M=M+1");
+        }
+
+        // ARG = SP-5-nArgs
+        printWriter.println("@SP");
+        printWriter.println("D=M");
+        printWriter.println("@5");
+        printWriter.println("D=D-A");
+        printWriter.println("@" + nArgs);
+        printWriter.println("D=D-A");
+        printWriter.println("@ARG");
+        printWriter.println("M=D");
+
+        // LCL = SP
+        printWriter.println("@SP");
+        printWriter.println("D=M");
+        printWriter.println("@LCL");
+        printWriter.println("M=D");
+
+        // goto f
+        writeGoto(functionName);
+
+        printWriter.println("(" + functionLabel + "$ret." + retCounter + ")");
+
+        retCounter++;
     }
 
     /**

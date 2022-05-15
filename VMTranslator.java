@@ -53,6 +53,9 @@ class VMTranslator {
                                 case C_FUNCTION:
                                     codeWriter.writeFunction(parser.arg1(), parser.arg2());
                                     break;
+                                case C_CALL:
+                                    codeWriter.writeCall(parser.arg1(), parser.arg2());
+                                    break;
                                 case C_RETURN:
                                     codeWriter.writeReturn();
                                     break;
