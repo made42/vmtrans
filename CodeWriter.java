@@ -24,6 +24,7 @@ class CodeWriter {
     private int retCounter = 0;
 
     private String functionLabel;
+    private String fileName;
 
     /**
      * Opens the output file / stream and gets ready to write into it.
@@ -46,6 +47,16 @@ class CodeWriter {
         mappings.put("eq", "JEQ");
         mappings.put("gt", "JGT");
         mappings.put("lt", "JLT");
+    }
+
+    /**
+     * Informs the codeWriter that the translation of a new VM file has started (called by the main program of the VM
+     * translator).
+     *
+     * @param fileName
+     */
+    void setFileName(String fileName) {
+        this.fileName = fileName.substring(0, fileName.indexOf('.'));
     }
 
     /**
@@ -123,9 +134,9 @@ class CodeWriter {
                         }
                         printWriter.println("@" + index);
                         printWriter.println("D=D+A");
-                        printWriter.println("@addr");
+                        printWriter.println("@addr" + index);
                         printWriter.println("M=D");
-                        printWriter.println("@addr");
+                        printWriter.println("@addr" + index);
                         printWriter.println("A=M");
                         printWriter.println("D=M");
                         break;
@@ -135,7 +146,7 @@ class CodeWriter {
                         printWriter.println("D=M");
                         break;
                     case "static":
-                        printWriter.println("@Foo." + index);
+                        printWriter.println("@" + fileName + "." + index);
                         printWriter.println("D=M");
                         break;
                 }
@@ -161,12 +172,12 @@ class CodeWriter {
                         }
                         printWriter.println("@" + index);
                         printWriter.println("D=D+A");
-                        printWriter.println("@addr");
+                        printWriter.println("@addr" + index);
                         printWriter.println("M=D");
                         printWriter.println("@SP");
                         printWriter.println("AM=M-1");
                         printWriter.println("D=M");
-                        printWriter.println("@addr");
+                        printWriter.println("@addr" + index);
                         printWriter.println("A=M");
                         break;
                     case "pointer":
@@ -180,7 +191,7 @@ class CodeWriter {
                         printWriter.println("@SP");
                         printWriter.println("AM=M-1");
                         printWriter.println("D=M");
-                        printWriter.println("@Foo." + index);
+                        printWriter.println("@" + fileName + "." + index);
                         break;
                 }
                 printWriter.println("M=D");
