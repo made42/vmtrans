@@ -57,6 +57,7 @@ class VMTranslator {
 
     static void handleDirectory(File file) throws Exception {
         codeWriter = new CodeWriter(new File(file.getPath() + "/" + file.getName() + ASM_EXT));
+        codeWriter.writeInit();
         File[] directoryListing = file.listFiles();
         if (directoryListing != null) {
             for (File child : directoryListing) {

@@ -60,6 +60,21 @@ class CodeWriter {
     }
 
     /**
+     * Writes the assembly instructions that effect the bootstrap code that initializes the VM. This code must be placed
+     * at the beginning of the generated <code>*.asm</code> file.
+     */
+    void writeInit() {
+        // SP=256
+        printWriter.println("@256");
+        printWriter.println("D=A");
+        printWriter.println("@SP");
+        printWriter.println("M=D");
+
+        // call Sys.init
+        writeCall("Sys.init", 0);
+    }
+
+    /**
      * Writes to the output file the assembly code that implements the given arithmetic command.
      *
      * @param command   The command to be written
