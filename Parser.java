@@ -16,23 +16,8 @@ import java.util.Scanner;
  */
 class Parser {
 
-    private static final String COMMENT_START = "//";
-
-    private Scanner scanner;
-
-    private String currentCommand;
-
-    enum CommandType {
-        C_PUSH,
-        C_POP,
-        C_ARITHMETIC,
-        C_LABEL,
-        C_GOTO,
-        C_IF,
-        C_FUNCTION,
-        C_CALL,
-        C_RETURN
-    }
+    private Scanner sc;
+    private String cmd;
 
     /**
      * Opens the input file / stream, and gets ready to parse it.
@@ -41,7 +26,7 @@ class Parser {
      * @throws Exception
      */
     Parser(File file) throws Exception {
-        scanner = new Scanner(file);
+        sc = new Scanner(file);
     }
 
     /**
@@ -50,7 +35,7 @@ class Parser {
      * @return boolean
      */
     boolean hasMoreLines() {
-        return scanner.hasNextLine();
+        return sc.hasNextLine();
     }
 
     /**
@@ -59,15 +44,9 @@ class Parser {
      * Initially there is no current command.
      */
     void advance() {
-        String line = scanner.nextLine();
-        if (!(line.isEmpty() || line.startsWith(COMMENT_START))) {
-            if (line.contains(COMMENT_START)) {
-                line = line.substring(0, line.indexOf(COMMENT_START));
-            }
-            currentCommand = line.trim();
-        } else {
-            advance();
-        }
+        do {
+            cmd = sc.nextLine().replaceFirst("//.+", "").trim();
+        } while (cmd.equals("") || cmd.startsWith("//"));
     }
 
     /**
@@ -77,14 +56,14 @@ class Parser {
      * @return  constant representing the type of the current command
      */
     CommandType commandType() {
-        if (currentCommand.startsWith("push")) return CommandType.C_PUSH;
-        if (currentCommand.startsWith("pop")) return CommandType.C_POP;
-        if (currentCommand.startsWith("label")) return CommandType.C_LABEL;
-        if (currentCommand.startsWith("goto")) return CommandType.C_GOTO;
-        if (currentCommand.startsWith("if-goto")) return CommandType.C_IF;
-        if (currentCommand.startsWith("function")) return CommandType.C_FUNCTION;
-        if (currentCommand.startsWith("call")) return CommandType.C_CALL;
-        if (currentCommand.startsWith("return")) return CommandType.C_RETURN;
+        if (cmd.startsWith("push")) return CommandType.C_PUSH;
+        if (cmd.startsWith("pop")) return CommandType.C_POP;
+        if (cmd.startsWith("label")) return CommandType.C_LABEL;
+        if (cmd.startsWith("goto")) return CommandType.C_GOTO;
+        if (cmd.startsWith("if-goto")) return CommandType.C_IF;
+        if (cmd.startsWith("function")) return CommandType.C_FUNCTION;
+        if (cmd.startsWith("call")) return CommandType.C_CALL;
+        if (cmd.startsWith("return")) return CommandType.C_RETURN;
         return CommandType.C_ARITHMETIC;
     }
 
@@ -96,8 +75,8 @@ class Parser {
      * @return  first argument of the current command
      */
     String arg1() {
-        if (commandType() == CommandType.C_ARITHMETIC) return currentCommand;
-        return currentCommand.split("\\s+")[1];
+        if (commandType() == CommandType.C_ARITHMETIC) return cmd;
+        return cmd.split("\\s+")[1];
     }
 
     /**
@@ -107,6 +86,6 @@ class Parser {
      * @return second argument of the current command
      */
     int arg2() {
-        return Integer.parseInt(currentCommand.split("\\s+")[2]);
+        return Integer.parseInt(cmd.split("\\s+")[2]);
     }
 }

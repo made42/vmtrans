@@ -20,7 +20,7 @@ class VMTranslator {
     private static final String VM_EXT = ".vm";
     private static final String ASM_EXT = ".asm";
 
-    private static CodeWriter codeWriter;
+    private static CodeWriter cw;
 
     public static void main(String[] args) throws Exception {
         if (args.length == MAX_ARGS) {
@@ -43,10 +43,10 @@ class VMTranslator {
         String fileName = file.getName();
         if (fileName.endsWith(VM_EXT)) {
             if (Character.isUpperCase(fileName.charAt(FIRST_CHAR))) {
-                codeWriter = new CodeWriter(new File(file.getParent() + "/" + fileName.substring(FIRST_CHAR, fileName.indexOf('.')) + ASM_EXT));
+                cw = new CodeWriter(new File(file.getParent() + "/" + fileName.substring(FIRST_CHAR, fileName.indexOf('.')) + ASM_EXT));
                 translate(file);
-                codeWriter.writeEnd();
-                codeWriter.close();
+                cw.writeEnd();
+                cw.close();
             } else {
                 System.out.println("First character in file name must be an uppercase letter");
             }
@@ -55,60 +55,59 @@ class VMTranslator {
         }
     }
 
-    static void handleDirectory(File file) throws Exception {
-        codeWriter = new CodeWriter(new File(file.getPath() + "/" + file.getName() + ASM_EXT));
-        codeWriter.writeInit();
-        File[] directoryListing = file.listFiles();
-        if (directoryListing != null) {
-            for (File child : directoryListing) {
-                String fileName = child.getName();
-                if (child.getName().endsWith(VM_EXT)) {
+    static void handleDirectory(File dir) throws Exception {
+        cw = new CodeWriter(new File(dir.getPath() + "/" + dir.getName() + ASM_EXT));
+        cw.writeInit();
+        File[] dirListing = dir.listFiles();
+        if (dirListing != null) {
+            for (File file : dirListing) {
+                String fileName = file.getName();
+                if (fileName.endsWith(VM_EXT)) {
                     if (Character.isUpperCase(fileName.charAt(FIRST_CHAR))) {
-                        translate(child);
+                        translate(file);
                     } else {
                         System.out.println("First character in file name must be an uppercase letter");
                     }
                 }
             }
-            codeWriter.close();
+            cw.close();
         }
     }
 
     static void translate(File file) throws Exception {
-        codeWriter.setFileName(file.getName());
-        Parser parser = new Parser(file);
-        while (parser.hasMoreLines()) {
-            parser.advance();
-            switch (parser.commandType()) {
+        cw.setFileName(file.getName());
+        Parser p = new Parser(file);
+        while (p.hasMoreLines()) {
+            p.advance();
+            switch (p.commandType()) {
                 case C_PUSH:
-                    codeWriter.writePushPop(Parser.CommandType.C_PUSH, parser.arg1(), parser.arg2());
+                    cw.writePushPop(CommandType.C_PUSH, p.arg1(), p.arg2());
                     break;
                 case C_POP:
-                    codeWriter.writePushPop(Parser.CommandType.C_POP, parser.arg1(), parser.arg2());
+                    cw.writePushPop(CommandType.C_POP, p.arg1(), p.arg2());
                     break;
                 case C_ARITHMETIC:
-                    codeWriter.writeArithmetic(parser.arg1());
+                    cw.writeArithmetic(p.arg1());
                     break;
                 case C_LABEL:
-                    codeWriter.writeLabel(parser.arg1());
+                    cw.writeLabel(p.arg1());
                     break;
                 case C_GOTO:
-                    codeWriter.writeGoto(parser.arg1());
+                    cw.writeGoto(p.arg1());
                     break;
                 case C_IF:
-                    codeWriter.writeIf(parser.arg1());
+                    cw.writeIf(p.arg1());
                     break;
                 case C_FUNCTION:
-                    codeWriter.writeFunction(parser.arg1(), parser.arg2());
+                    cw.writeFunction(p.arg1(), p.arg2());
                     break;
                 case C_CALL:
-                    codeWriter.writeCall(parser.arg1(), parser.arg2());
+                    cw.writeCall(p.arg1(), p.arg2());
                     break;
                 case C_RETURN:
-                    codeWriter.writeReturn();
+                    cw.writeReturn();
                     break;
             }
         }
-
     }
 }

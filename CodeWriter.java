@@ -16,7 +16,7 @@ import java.util.Map;
  */
 class CodeWriter {
 
-    private PrintWriter printWriter;
+    private PrintWriter pw;
 
     private Map<String, String> mappings;
 
@@ -32,7 +32,7 @@ class CodeWriter {
      * @param file  Output file / stream
      */
     CodeWriter(File file) throws Exception {
-        printWriter = new PrintWriter(new FileWriter(file));
+        pw = new PrintWriter(new FileWriter(file));
         mappings = new HashMap<>();
         mappings.put("local", "LCL");
         mappings.put("argument", "ARG");
@@ -44,9 +44,6 @@ class CodeWriter {
         mappings.put("or", "|");
         mappings.put("neg", "-");
         mappings.put("not", "!");
-        mappings.put("eq", "JEQ");
-        mappings.put("gt", "JGT");
-        mappings.put("lt", "JLT");
     }
 
     /**
@@ -65,11 +62,10 @@ class CodeWriter {
      */
     void writeInit() {
         // SP=256
-        printWriter.println("@256");
-        printWriter.println("D=A");
-        printWriter.println("@SP");
-        printWriter.println("M=D");
-
+        pw.println("@256");
+        pw.println("D=A");
+        pw.println("@SP");
+        pw.println("M=D");
         // call Sys.init
         writeCall("Sys.init", 0);
     }
@@ -80,39 +76,37 @@ class CodeWriter {
      * @param command   The command to be written
      */
     void writeArithmetic(String command) {
-        printWriter.println("@SP");
         switch(command) {
             case "neg": // -y
             case "not": // not x
-                printWriter.println("A=M-1");
-                printWriter.println("M=" + mappings.get(command) + "M");
+                pw.println("@SP");
+                pw.println("A=M-1");
+                pw.println("M=" + mappings.get(command) + "M");
                 break;
             case "add": // x + y
             case "sub": // x - y
             case "and": // x and y
             case "or":  // x or y
-                printWriter.println("AM=M-1");
-                printWriter.println("D=M");
-                printWriter.println("A=A-1");
-                printWriter.println("M=M" + mappings.get(command) + "D");
+                popFromStack();
+                pw.println("A=A-1");
+                pw.println("M=M" + mappings.get(command) + "D");
                 break;
             case "eq":  // x == y
             case "gt":  // x > y
             case "lt":  // x < y
-                printWriter.println("AM=M-1");
-                printWriter.println("D=M");
-                printWriter.println("A=A-1");
-                printWriter.println("D=M-D");
-                printWriter.println("M=0");
-                printWriter.println("@" + command + counter);
-                printWriter.println("D;" + mappings.get(command));
-                printWriter.println("@" + command + "cont" + counter);
-                printWriter.println("0;JMP");
-                printWriter.println("(" + command + counter+ ")");
-                printWriter.println("@SP");
-                printWriter.println("A=M-1");
-                printWriter.println("M=-1");
-                printWriter.println("(" + command + "cont" + counter + ")");
+                popFromStack();
+                pw.println("A=A-1");
+                pw.println("D=M-D");
+                pw.println("M=0");
+                pw.println("@" + command + counter);
+                pw.println("D;J" + command.toUpperCase());
+                pw.println("@" + command + "cont" + counter);
+                pw.println("0;JMP");
+                pw.println("(" + command + counter + ")");
+                pw.println("@SP");
+                pw.println("A=M-1");
+                pw.println("M=-1");
+                pw.println("(" + command + "cont" + counter + ")");
                 counter++;
                 break;
         }
@@ -127,13 +121,13 @@ class CodeWriter {
      * @param index
      * @throws Exception
      */
-    void writePushPop(Parser.CommandType command, String segment, int index) {
+    void writePushPop(CommandType command, String segment, int index) {
         switch (command) {
             case C_PUSH:
                 switch (segment) {
                     case "constant":
-                        printWriter.println("@" + index);
-                        printWriter.println("D=A");
+                        pw.println("@" + index);
+                        pw.println("D=A");
                         break;
                     case "local":
                     case "argument":
@@ -141,35 +135,31 @@ class CodeWriter {
                     case "that":
                     case "temp":
                         if (segment.equals("temp")) {
-                            printWriter.println("@5");
-                            printWriter.println("D=A");
+                            pw.println("@5");
+                            pw.println("D=A");
                         } else {
-                            printWriter.println("@" + mappings.get(segment));
-                            printWriter.println("D=M");
+                            pw.println("@" + mappings.get(segment));
+                            pw.println("D=M");
                         }
-                        printWriter.println("@" + index);
-                        printWriter.println("D=D+A");
-                        printWriter.println("@addr" + index);
-                        printWriter.println("M=D");
-                        printWriter.println("@addr" + index);
-                        printWriter.println("A=M");
-                        printWriter.println("D=M");
+                        pw.println("@" + index);
+                        pw.println("D=D+A");
+                        pw.println("@addr" + index);
+                        pw.println("M=D");
+                        pw.println("@addr" + index);
+                        pw.println("A=M");
+                        pw.println("D=M");
                         break;
                     case "pointer":
-                        if (index == 0) printWriter.println("@THIS");
-                        else if (index == 1) printWriter.println("@THAT");
-                        printWriter.println("D=M");
+                        if (index == 0) pw.println("@THIS");
+                        else if (index == 1) pw.println("@THAT");
+                        pw.println("D=M");
                         break;
                     case "static":
-                        printWriter.println("@" + fileName + "." + index);
-                        printWriter.println("D=M");
+                        pw.println("@" + fileName + "." + index);
+                        pw.println("D=M");
                         break;
                 }
-                printWriter.println("@SP");
-                printWriter.println("A=M");
-                printWriter.println("M=D");
-                printWriter.println("@SP");
-                printWriter.println("M=M+1");
+                pushToStack();
                 break;
             case C_POP:
                 switch (segment) {
@@ -179,37 +169,31 @@ class CodeWriter {
                     case "that":
                     case "temp":
                         if (segment.equals("temp")) {
-                            printWriter.println("@5");
-                            printWriter.println("D=A");
+                            pw.println("@5");
+                            pw.println("D=A");
                         } else {
-                            printWriter.println("@" + mappings.get(segment));
-                            printWriter.println("D=M");
+                            pw.println("@" + mappings.get(segment));
+                            pw.println("D=M");
                         }
-                        printWriter.println("@" + index);
-                        printWriter.println("D=D+A");
-                        printWriter.println("@addr" + index);
-                        printWriter.println("M=D");
-                        printWriter.println("@SP");
-                        printWriter.println("AM=M-1");
-                        printWriter.println("D=M");
-                        printWriter.println("@addr" + index);
-                        printWriter.println("A=M");
+                        pw.println("@" + index);
+                        pw.println("D=D+A");
+                        pw.println("@addr" + index);
+                        pw.println("M=D");
+                        popFromStack();
+                        pw.println("@addr" + index);
+                        pw.println("A=M");
                         break;
                     case "pointer":
-                        printWriter.println("@SP");
-                        printWriter.println("AM=M-1");
-                        printWriter.println("D=M");
-                        if (index == 0) printWriter.println("@THIS");
-                        else if (index == 1) printWriter.println("@THAT");
+                        popFromStack();
+                        if (index == 0) pw.println("@THIS");
+                        else if (index == 1) pw.println("@THAT");
                         break;
                     case "static":
-                        printWriter.println("@SP");
-                        printWriter.println("AM=M-1");
-                        printWriter.println("D=M");
-                        printWriter.println("@" + fileName + "." + index);
+                        popFromStack();
+                        pw.println("@" + fileName + "." + index);
                         break;
                 }
-                printWriter.println("M=D");
+                pw.println("M=D");
                 break;
         }
     }
@@ -220,7 +204,7 @@ class CodeWriter {
      * @param label
      */
     void writeLabel(String label) {
-        printWriter.println("(" + label + ")");
+        pw.println("(" + label + ")");
     }
 
     /**
@@ -229,8 +213,8 @@ class CodeWriter {
      * @param label
      */
     void writeGoto(String label) {
-        printWriter.println("@" + label);
-        printWriter.println("0;JMP");
+        pw.println("@" + label);
+        pw.println("0;JMP");
     }
 
     /**
@@ -239,11 +223,9 @@ class CodeWriter {
      * @param label
      */
     void writeIf(String label) {
-        printWriter.println("@SP");
-        printWriter.println("AM=M-1");
-        printWriter.println("D=M");
-        printWriter.println("@" + label);
-        printWriter.println("D;JNE");
+        popFromStack();
+        pw.println("@" + label);
+        pw.println("D;JNE");
     }
 
     /**
@@ -254,15 +236,14 @@ class CodeWriter {
      */
     void writeFunction(String label, int nVars) {
         this.functionLabel = label;
-        printWriter.println("(" + label + ")");
+        writeLabel(label);
         for (int i = 0; i < nVars; i++) {
-            printWriter.println("@" + mappings.get("local"));
-            printWriter.println("D=M");
-            printWriter.println("@" + i);
-            printWriter.println("A=D+A");
-            printWriter.println("M=0");
-            printWriter.println("@SP");
-            printWriter.println("M=M+1");
+            pw.println("@" + mappings.get("local"));
+            pw.println("D=M");
+            pw.println("@" + i);
+            pw.println("A=D+A");
+            pw.println("M=0");
+            incrementSP();
         }
     }
 
@@ -274,46 +255,32 @@ class CodeWriter {
      */
     void writeCall(String functionName, int nArgs) {
         // push returnAddress
-        printWriter.println("@" + functionLabel + "$ret." + retCounter);
-        printWriter.println("D=A");
-        printWriter.println("@SP");
-        printWriter.println("A=M");
-        printWriter.println("M=D");
-        printWriter.println("@SP");
-        printWriter.println("M=M+1");
-
+        pw.println("@" + functionLabel + "$ret." + retCounter);
+        pw.println("D=A");
+        pushToStack();
         // push LCL, ARG, THIS, THAT
         for (String segment : new String[]{"LCL","ARG","THIS","THAT"} ) {
-            printWriter.println("@" + segment);
-            printWriter.println("D=M");
-            printWriter.println("@SP");
-            printWriter.println("A=M");
-            printWriter.println("M=D");
-            printWriter.println("@SP");
-            printWriter.println("M=M+1");
+            pw.println("@" + segment);
+            pw.println("D=M");
+            pushToStack();
         }
-
         // ARG = SP-5-nArgs
-        printWriter.println("@SP");
-        printWriter.println("D=M");
-        printWriter.println("@5");
-        printWriter.println("D=D-A");
-        printWriter.println("@" + nArgs);
-        printWriter.println("D=D-A");
-        printWriter.println("@ARG");
-        printWriter.println("M=D");
-
+        pw.println("@SP");
+        pw.println("D=M");
+        pw.println("@5");
+        pw.println("D=D-A");
+        pw.println("@" + nArgs);
+        pw.println("D=D-A");
+        pw.println("@ARG");
+        pw.println("M=D");
         // LCL = SP
-        printWriter.println("@SP");
-        printWriter.println("D=M");
-        printWriter.println("@LCL");
-        printWriter.println("M=D");
-
+        pw.println("@SP");
+        pw.println("D=M");
+        pw.println("@LCL");
+        pw.println("M=D");
         // goto f
         writeGoto(functionName);
-
-        printWriter.println("(" + functionLabel + "$ret." + retCounter + ")");
-
+        writeLabel(functionLabel + "$ret." + retCounter);
         retCounter++;
     }
 
@@ -322,50 +289,61 @@ class CodeWriter {
      */
     void writeReturn() {
         // frame is a temporary variable
-        printWriter.println("@LCL");
-        printWriter.println("D=M");
-        printWriter.println("@frame");
-        printWriter.println("M=D");
-
+        pw.println("@LCL");
+        pw.println("D=M");
+        pw.println("@frame");
+        pw.println("M=D");
         // retAddr = *(frame-5)
-        printWriter.println("@frame");
-        printWriter.println("D=M");
-        printWriter.println("@5");
-        printWriter.println("A=D-A");
-        printWriter.println("D=M");
-        printWriter.println("@retAddr");
-        printWriter.println("M=D");
-
+        pw.println("@frame");
+        pw.println("D=M");
+        pw.println("@5");
+        pw.println("A=D-A");
+        pw.println("D=M");
+        pw.println("@retAddr");
+        pw.println("M=D");
         // *ARG = pop()
-        printWriter.println("@SP");
-        printWriter.println("AM=M-1");
-        printWriter.println("D=M");
-        printWriter.println("@ARG");
-        printWriter.println("A=M");
-        printWriter.println("M=D");
-
+        popFromStack();
+        pw.println("@ARG");
+        pw.println("A=M");
+        pw.println("M=D");
         // SP = ARG + 1
-        printWriter.println("@ARG");
-        printWriter.println("D=M+1");
-        printWriter.println("@SP");
-        printWriter.println("M=D");
-
+        pw.println("@ARG");
+        pw.println("D=M+1");
+        pw.println("@SP");
+        pw.println("M=D");
         // THAT = *(frame-1)
         // THIS = *(frame-2)
         // ARG = *(frame-3)
         // LCL = *(frame-4)
         for (String segment : new String[]{"THAT","THIS","ARG","LCL"} ) {
-            printWriter.println("@frame");
-            printWriter.println("AM=M-1");
-            printWriter.println("D=M");
-            printWriter.println("@" + segment);
-            printWriter.println("M=D");
+            pw.println("@frame");
+            pw.println("AM=M-1");
+            pw.println("D=M");
+            pw.println("@" + segment);
+            pw.println("M=D");
         }
-
         // goto retAddr
-        printWriter.println("@retAddr");
-        printWriter.println("A=M");
-        printWriter.println("0;JMP");
+        pw.println("@retAddr");
+        pw.println("A=M");
+        pw.println("0;JMP");
+    }
+
+    private void incrementSP() {
+        pw.println("@SP");
+        pw.println("M=M+1");
+    }
+
+    private void pushToStack() {
+        pw.println("@SP");
+        pw.println("A=M");
+        pw.println("M=D");
+        incrementSP();
+    }
+
+    private void popFromStack() {
+        pw.println("@SP");
+        pw.println("AM=M-1");
+        pw.println("D=M");
     }
 
     /**
@@ -373,15 +351,15 @@ class CodeWriter {
      * To be called once, after translating all the VM commands.
      */
     void writeEnd() {
-        printWriter.println("(END)");
-        printWriter.println("@END");
-        printWriter.println("0;JMP");
+        pw.println("(END)");
+        pw.println("@END");
+        pw.println("0;JMP");
     }
 
     /**
      * Closes the output file.
      */
     void close() {
-        printWriter.close();
+        pw.close();
     }
 }
