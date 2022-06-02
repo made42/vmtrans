@@ -1,4 +1,9 @@
 import java.io.File;
+import java.io.FilenameFilter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * This is the main program that drives the translation process, using the services of a <code>Parser<code> and a
@@ -14,100 +19,67 @@ import java.io.File;
  */
 class VMTranslator {
 
-    private static final int MAX_ARGS = 1;
-    private static final int FIRST_ARG = 0;
-    private static final int FIRST_CHAR = 0;
-    private static final String VM_EXT = ".vm";
-    private static final String ASM_EXT = ".asm";
-
-    private static CodeWriter cw;
-
     public static void main(String[] args) throws Exception {
-        if (args.length == MAX_ARGS) {
-            File inputFile = new File(args[FIRST_ARG]);
-            if (inputFile.exists()) {
-                if (inputFile.isFile()) {
-                    handleFile(inputFile);
-                } else if (inputFile.isDirectory()) {
-                    handleDirectory(inputFile);
-                }
-            } else  {
-                System.out.println("No such file or directory");
-            }
+        File in = new File(args[0]);
+        List<File> files = new ArrayList<>();
+        String outname;
+
+        if (in.isFile()) {
+            files.add(in.getAbsoluteFile());
+            outname = in.getAbsolutePath().replaceFirst("[.][^.]+$", ".asm");
         } else {
-            System.out.println("Invalid number of arguments");
+            FilenameFilter filter = (dir, name) -> name.matches(".*.vm");
+            files.addAll(Arrays.asList(Objects.requireNonNull(in.listFiles(filter))));
+            outname = in.getAbsolutePath() + File.separator + in.getName() + ".asm";
         }
-    }
 
-    static void handleFile(File file) throws Exception {
-        String fileName = file.getName();
-        if (fileName.endsWith(VM_EXT)) {
-            if (Character.isUpperCase(fileName.charAt(FIRST_CHAR))) {
-                cw = new CodeWriter(new File(file.getParent() + "/" + fileName.substring(FIRST_CHAR, fileName.indexOf('.')) + ASM_EXT));
-                translate(file);
-                cw.writeEnd();
-                cw.close();
-            } else {
-                System.out.println("First character in file name must be an uppercase letter");
-            }
-        } else {
-            System.out.println("Invalid file extension");
+        CodeWriter cw = new CodeWriter(new File(outname));
+
+        if (in.isDirectory()) {
+            cw.writeInit();
         }
-    }
 
-    static void handleDirectory(File dir) throws Exception {
-        cw = new CodeWriter(new File(dir.getPath() + "/" + dir.getName() + ASM_EXT));
-        cw.writeInit();
-        File[] dirListing = dir.listFiles();
-        if (dirListing != null) {
-            for (File file : dirListing) {
-                String fileName = file.getName();
-                if (fileName.endsWith(VM_EXT)) {
-                    if (Character.isUpperCase(fileName.charAt(FIRST_CHAR))) {
-                        translate(file);
-                    } else {
-                        System.out.println("First character in file name must be an uppercase letter");
-                    }
+        for (File f : files) {
+            cw.setFileName(f.getName());
+            Parser p = new Parser(f);
+            while (p.hasMoreLines()) {
+                p.advance();
+                switch (p.commandType()) {
+                    case C_PUSH:
+                        cw.writePushPop(CommandType.C_PUSH, p.arg1(), p.arg2());
+                        break;
+                    case C_POP:
+                        cw.writePushPop(CommandType.C_POP, p.arg1(), p.arg2());
+                        break;
+                    case C_ARITHMETIC:
+                        cw.writeArithmetic(p.arg1());
+                        break;
+                    case C_LABEL:
+                        cw.writeLabel(p.arg1());
+                        break;
+                    case C_GOTO:
+                        cw.writeGoto(p.arg1());
+                        break;
+                    case C_IF:
+                        cw.writeIf(p.arg1());
+                        break;
+                    case C_FUNCTION:
+                        cw.writeFunction(p.arg1(), p.arg2());
+                        break;
+                    case C_CALL:
+                        cw.writeCall(p.arg1(), p.arg2());
+                        break;
+                    case C_RETURN:
+                        cw.writeReturn();
+                        break;
                 }
             }
-            cw.close();
         }
-    }
 
-    static void translate(File file) throws Exception {
-        cw.setFileName(file.getName());
-        Parser p = new Parser(file);
-        while (p.hasMoreLines()) {
-            p.advance();
-            switch (p.commandType()) {
-                case C_PUSH:
-                    cw.writePushPop(CommandType.C_PUSH, p.arg1(), p.arg2());
-                    break;
-                case C_POP:
-                    cw.writePushPop(CommandType.C_POP, p.arg1(), p.arg2());
-                    break;
-                case C_ARITHMETIC:
-                    cw.writeArithmetic(p.arg1());
-                    break;
-                case C_LABEL:
-                    cw.writeLabel(p.arg1());
-                    break;
-                case C_GOTO:
-                    cw.writeGoto(p.arg1());
-                    break;
-                case C_IF:
-                    cw.writeIf(p.arg1());
-                    break;
-                case C_FUNCTION:
-                    cw.writeFunction(p.arg1(), p.arg2());
-                    break;
-                case C_CALL:
-                    cw.writeCall(p.arg1(), p.arg2());
-                    break;
-                case C_RETURN:
-                    cw.writeReturn();
-                    break;
-            }
+        if (in.isFile()) {
+            cw.writeEnd();
         }
+
+        cw.close();
     }
 }
